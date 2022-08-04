@@ -14,7 +14,6 @@ import (
 const (
 	contextPkg         = protogen.GoImportPath("context")
 	fiberPkg           = protogen.GoImportPath("github.com/gofiber/fiber/v2")
-	errPkg             = protogen.GoImportPath("errors")
 	metadataPkg        = protogen.GoImportPath("google.golang.org/grpc/metadata")
 	deprecationComment = "// Deprecated: Do not use."
 )
@@ -35,7 +34,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P("// This is a compile-time assertion to ensure that this generated file")
 	g.P("// is compatible with the nguyenhaihoang/protoc-gen-go-fiber package it is being compiled against.")
 	g.P("// ", contextPkg.Ident(""), metadataPkg.Ident(""))
-	g.P("//", fiberPkg.Ident(""), errPkg.Ident(""))
+	g.P("//", fiberPkg.Ident("fiber"))
 	g.P()
 
 	for _, service := range file.Services {

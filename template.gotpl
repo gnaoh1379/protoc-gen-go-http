@@ -37,17 +37,14 @@ func (s *{{$.Name}}) {{ .HandlerName }} (ctx *fiber.Ctx) error {
 		return err
 	}
 {{end}}
-	md := metadata.New(nil)
-	for k, v := range ctx.Request.Header {
-		md.Set(k, v...)
-	}
-	newCtx := metadata.NewIncomingContext(ctx, md)
+	md := metadata.New(ctx.GetReqHeaders())
+	newCtx := metadata.NewIncomingContext(ctx.Context(), md)
 	out, err := s.server.({{ $.InterfaceName }}).{{.Name}}(newCtx, &in)
 	if err != nil {
 		return err
 	}
 
-	return c.Status(200).JSON(out)
+	return ctx.Status(200).JSON(out)
 }
 {{end}}
 
