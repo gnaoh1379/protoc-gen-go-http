@@ -34,7 +34,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	//g.Import(fiberPkg)
 	g.P("// This is a compile-time assertion to ensure that this generated file")
 	g.P("// is compatible with the nguyenhaihoang/protoc-gen-go-fiber package it is being compiled against.")
-	g.P("// ", contextPkg.Ident(""), metadataPkg.Ident(""))
+	//g.P("// ", contextPkg.Ident(""), metadataPkg.Ident(""))
 	//g.P("// ", fiberPkg.Ident("fiber"))
 
 	g.P()
