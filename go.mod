@@ -1,4 +1,4 @@
-module github.com/nguyenhaihoang/protoc-gen-go-fiber
+module github.com/nguyenhaihoang/protoc-gen-go-http
 
 go 1.18
 

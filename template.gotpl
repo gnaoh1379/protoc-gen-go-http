@@ -1,55 +1,67 @@
-type {{ $.InterfaceName }} interface {
-{{range .MethodSet}}
-	{{.Name}}(context.Context, *{{.Request}}) (*{{.Reply}}, error)
-{{end}}
-}
-func Register{{ $.InterfaceName }}(r fiber.Router, srv {{ $.InterfaceName }}) {
+
+func RegisterHttp{{ $.InterfaceName }}(r gin.IRouter, srv {{ $.InterfaceName }}) {
 	s := {{.Name}}{
 		server: srv,
 		router:     r,
+		json: &protojson.MarshalOptions{EmitUnpopulated: true},
 	}
 	s.RegisterService()
 }
 
 type {{$.Name}} struct{
 	server {{ $.InterfaceName }}
-	router fiber.Router
+	router gin.IRouter
+    json   *protojson.MarshalOptions
 }
+
 
 {{range .Methods}}
-func (s *{{$.Name}}) {{ .HandlerName }} (ctx *fiber.Ctx) error {
+func (s *{{$.Name}}) {{ .HandlerName }} (ctx *gin.Context) {
 	var in {{.Request}}
-{{if .HasPathParams }}
-	if err := ctx.ParamsParser(&in); err != nil {
-		return err
+	{{if .HasPathParams }}
+		if err := ctx.ShouldBindUri(&in); err != nil {
+		ctx.Error(err)
+		return
+		}
+	{{end}}
+	{{if eq .Method "GET" "DELETE" }}
+		if err := ctx.ShouldBindQuery(&in); err != nil {
+		ctx.Error(err)
+		return
+		}
+	{{else if eq .Method "POST" "PUT" }}
+		if err := ctx.ShouldBindJSON(&in); err != nil {
+		ctx.Error(err)
+		return
+		}
+	{{else}}
+		if err := ctx.ShouldBind(&in); err != nil {
+		ctx.Error(err)
+		return
+		}
+	{{end}}
+	md := metadata.New(nil)
+	for k, v := range ctx.Request.Header {
+		md.Set(k, v...)
 	}
-{{end}}
-{{if eq .Method "GET" "DELETE" }}
-	if err := ctx.QueryParser(&in); err != nil {
-		return err
-	}
-{{else if eq .Method "POST" "PUT" }}
-	if err := ctx.BodyParser(&in); err != nil {
-		return err
-	}
-{{else}}
-	if err := ctx.BodyParser(&in); err != nil {
-		return err
-	}
-{{end}}
-	md := metadata.New(ctx.GetReqHeaders())
-	newCtx := metadata.NewIncomingContext(ctx.Context(), md)
+	newCtx := metadata.NewIncomingContext(ctx, md)
 	out, err := s.server.({{ $.InterfaceName }}).{{.Name}}(newCtx, &in)
 	if err != nil {
-		return err
+		ctx.Error(err)
+		return
 	}
-
-	return ctx.Status(200).JSON(out)
-}
+	outData,err := s.json.Marshal(out)
+	if err != nil{
+		ctx.Error(err)
+		return
+	}
+	ctx.Header("Content-Type","application/json; charset=utf-8")
+	ctx.JSON(http.StatusOK, outData)
+	}
 {{end}}
 
 func (s *{{$.Name}}) RegisterService() {
 {{range .Methods}}
-		s.router.Add("{{.Method}}", "{{.Path}}", s.{{ .HandlerName }})
+	s.router.Handle("{{.Method}}", "{{.Path}}", s.{{ .HandlerName }})
 {{end}}
 }
