@@ -1,9 +1,9 @@
 
-func RegisterHttp{{ $.InterfaceName }}(r gin.IRouter, srv {{ $.InterfaceName }}) {
+func RegisterHttp{{ $.InterfaceName }}(r gin.IRouter, srv {{ $.InterfaceName }},jsonMarshal *protojson.MarshalOptions) {
 	s := {{.Name}}{
 		server: srv,
 		router:     r,
-		json: &protojson.MarshalOptions{EmitUnpopulated: true},
+		json: jsonMarshal,
 	}
 	s.RegisterService()
 }
